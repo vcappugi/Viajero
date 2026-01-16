@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - VIAJERO{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'viaticos:localidad_list' %}" class="btn btn-ghost btn-circle">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-extrabold text-primary">{{ title }}</h1>
+            <p class="text-base-content/60">Registra y categoriza los destinos para el cálculo de viáticos.</p>
+        </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="card bg-base-100 shadow-xl border-t-4 border-primary">
+            <div class="card-body gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Nombre -->
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-base-content text-lg">Nombre de Localidad*</span>
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                        <label class="label"><span class="label-text-alt text-error font-bold">{{ form.nombre.errors.0 }}</span></label>
+                        {% endif %}
+                        <label class="label"><span class="label-text-alt opacity-50 italic">Ej: Bogotá, Medellín,
+                                Cartagena...</span></label>
+                    </div>
+
+                    <!-- Zona -->
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-base-content text-lg">Zona / Región*</span>
+                        </label>
+                        {{ form.zona }}
+                        {% if form.zona.errors %}
+                        <label class="label"><span class="label-text-alt text-error font-bold">{{ form.zona.errors.0 }}</span></label>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tarifa Premium -->
+                <div class="divider">Configuración Especial</div>
+
+                <div
+                    class="form-control bg-base-200 p-6 rounded-2xl border-2 border-transparent hover:border-warning transition-all">
+                    <label class="label cursor-pointer justify-start gap-4">
+                        {{ form.es_premium }}
+                        <div>
+                            <span class="label-text font-bold text-lg block">Activar Tarifa Premium</span>
+                            <span class="label-text-alt opacity-70">Aplica recargos especiales en alojamiento y
+                                alimentación para esta localidad.</span>
+                        </div>
+                    </label>
+                </div>
+
+                {% if localidad %}
+                <div class="divider text-base-content/30 italic text-[10px] uppercase tracking-widest mt-8">Trazabilidad
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[9px] uppercase font-bold opacity-50 mb-1">Registrado</div>
+                        <div class="text-xs font-semibold">{{ localidad.audit_creacion }}</div>
+                    </div>
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[9px] uppercase font-bold opacity-50 mb-1">Último Cambio</div>
+                        <div class="text-xs font-semibold">{{ localidad.audit_modifica }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+            <a href="{% url 'viaticos:localidad_list' %}" class="btn btn-ghost order-2 sm:order-1">Cancelar</a>
+            <button type="submit" class="btn btn-primary shadow-lg px-8 order-1 sm:order-2">
+                <i class="fas fa-save mr-2"></i>Guardar Localidad
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

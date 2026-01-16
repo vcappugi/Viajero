@@ -1,0 +1,132 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VIAJERO{% endblock %}</title>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="bg-base-200 min-h-screen">
+    <div class="drawer">
+        <input id="my-drawer-3" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content flex flex-col">
+            <!-- Navbar -->
+            <div class="w-full navbar bg-primary text-primary-content sticky top-0 z-30 shadow-lg">
+                <div class="flex-none">
+                    <label for="my-drawer-3" aria-label="open sidebar" class="btn btn-square btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            class="inline-block w-6 h-6 stroke-current">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </label>
+                </div>
+                <div class="flex-1 px-2 mx-2 font-bold text-xl drop-shadow-sm">
+                    <a href="{% url 'viaticos:home' %}">
+                        <i class="fa-solid fa-suitcase-rolling fa-xl"></i>
+                        VIAJERO
+                    </a>
+                </div>
+                <div class="flex-none">
+                    <ul class="menu menu-horizontal px-1">
+                        <!-- User Dropdown always on top -->
+                        <li class="ml-4">
+                            {% if user.is_authenticated %}
+                            <div class="dropdown dropdown-end">
+                                <label tabindex="0"
+                                    class="btn btn-ghost rounded-full border border-white/20 pl-4 pr-1 py-1 flex items-center gap-3 h-auto min-h-0">
+                                    <span class="font-bold text-xs sm:text-sm text-primary-content">
+                                        {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username
+                                        }}{% endif %}
+                                    </span>
+                                    <div class="avatar">
+                                        <div
+                                            class="w-10 h-10 rounded-full bg-secondary text-secondary-content flex items-center justify-center border-2 border-white/10">
+                                            <i class="fas fa-user text-sm"></i>
+                                        </div>
+                                    </div>
+                                </label>
+                                <ul tabindex="0"
+                                    class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52 text-base-content">
+                                    <li class="menu-title text-gray-400 px-4 py-2 text-xs uppercase">{{ user.username }}
+                                    </li>
+                                    <li><a class="justify-between">Perfil<span class="badge">Nuevo</span></a></li>
+                                    <li><a>Ajustes</a></li>
+                                    <li>
+                                        <form method="post" action="{% url 'viaticos:custom_logout' %}" class="w-full">
+                                            {% csrf_token %}
+                                            <button type="submit" class="w-full text-left">Cerrar Sesión</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                            {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Ingresar</a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Page content here -->
+            <main class="container mx-auto p-4 flex-grow">
+                {% block content %}
+                <div class="hero min-h-[60vh] bg-base-100 rounded-box shadow-xl mt-4">
+                    <div class="hero-content text-center">
+                        <div class="max-w-md">
+                            <h1 class="text-5xl font-bold text-primary">¡Bienvenido a VIAJERO!</h1>
+                            <p class="py-6">El sistema inteligente para la gestión y aprobación de viáticos
+                                empresariales.</p>
+                            <button class="btn btn-primary btn-lg shadow-md">Nueva Solicitud</button>
+                        </div>
+                    </div>
+                </div>
+                {% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+                <aside>
+                    <p>Copyright © 2026 - VIAJERO - Sistema de Viáticos</p>
+                </aside>
+            </footer>
+        </div>
+        <div class="drawer-side z-40">
+            <label for="my-drawer-3" aria-label="close sidebar" class="drawer-overlay"></label>
+            <ul class="menu p-4 w-80 min-h-screen bg-base-200">
+                <!-- Sidebar content here -->
+                <li class="menu-title text-primary font-bold text-lg mb-4">Menú Principal</li>
+                <li><a href="{% url 'viaticos:home' %}"><i class="fas fa-home w-6"></i>Inicio</a></li>
+                <li><a href="{% url 'viaticos:empresa_list' %}"><i class="fas fa-building w-6"></i>Empresas</a></li>
+                <li><a href="{% url 'viaticos:user_list' %}"><i class="fas fa-users w-6"></i>Usuarios</a></li>
+                <li><a href="{% url 'viaticos:role_list' %}"><i class="fas fa-shield-alt w-6"></i>Roles</a></li>
+                <li><a href="{% url 'viaticos:tasa_list' %}"><i class="fas fa-hand-holding-usd w-6"></i>Tasas de
+                        Cambio</a></li>
+                <li><a href="{% url 'viaticos:localidad_list' %}"><i
+                            class="fas fa-map-marker-alt w-6"></i>Localidades</a></li>
+                <li><a href="{% url 'viaticos:tipo_viatico_list' %}"><i class="fas fa-list-ul w-6"></i>Tipos de
+                        Viáticos</a></li>
+                <li><a href="{% url 'viaticos:solicitud_list' %}"><i
+                            class="fas fa-file-invoice-dollar w-6"></i>Solicitudes</a></li>
+                <li><a href="#"><i class="fas fa-check-double w-6"></i>Aprobaciones</a></li>
+                <li><a href="#"><i class="fas fa-truck-loading w-6"></i>Logística</a></li>
+                <li><a href="#"><i class="fas fa-history w-6"></i>Historial</a></li>
+                <div class="divider"></div>
+                <li>
+                    <form method="post" action="{% url 'viaticos:custom_logout' %}" class="w-full">
+                        {% csrf_token %}
+                        <button type="submit" class="flex items-center w-full text-left">
+                            <i class="fas fa-sign-out-alt w-6"></i>Cerrar Sesión
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>

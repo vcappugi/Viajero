@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Tasas de Cambio - VIAJERO{% endblock %}
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <h1 class="text-3xl font-extrabold text-primary">Tasas de Cambio</h1>
+    <a href="{% url 'viaticos:tasa_create' %}" class="btn btn-primary shadow-lg"><i
+            class="fas fa-coins mr-2"></i>Registrar Tasa</a>
+</div>
+<div class="card bg-base-100 shadow-xl overflow-hidden">
+    <div class="p-6 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-6">
+            <form method="get" class="flex items-center gap-3">
+                <span class="text-sm font-semibold opacity-70">Mostrar</span>
+                <select name="per_page" class="select select-bordered select-sm focus:select-primary"
+                    onchange="this.form.submit()">
+                    {% for option in per_page_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.value }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="q_fecha" value="{{ q_fecha|default:'' }}">
+                <span class="text-sm font-semibold opacity-70">registros</span>
+            </form>
+
+            <div class="divider divider-horizontal hidden md:flex"></div>
+
+            <form method="get" class="flex items-center gap-2">
+                <input type="hidden" name="per_page" value="{{ per_page }}">
+                <div class="form-control">
+                    <div class="input-group input-group-sm flex items-center gap-2">
+                        <span class="text-sm font-semibold opacity-70">Filtrar por Fecha:</span>
+                        <input type="date" name="q_fecha" value="{{ q_fecha|default:'' }}"
+                            class="input input-bordered input-sm focus:input-primary">
+                        <button type="submit" class="btn btn-sm btn-square btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        {% if q_fecha %}
+                        <a href="{% url 'viaticos:tasa_list' %}?per_page={{ per_page }}"
+                            class="btn btn-sm btn-ghost btn-square text-error" title="Limpiar filtro">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead class="bg-base-200 uppercase text-xs">
+                <tr>
+                    <th class="w-12">#</th>
+                    <th>Fecha Valor</th>
+                    <th>Tasa (Bs./$)</th>
+                    <th>Auditoría</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tasa in page_obj %}
+                <tr class="hover text-sm">
+                    <td class="font-mono text-xs opacity-50">{{ forloop.counter|add:page_obj.start_index|add:"-1" }}
+                    </td>
+                    <td class="font-bold">{{ tasa.fecha_valor|date:"d/m/Y" }}</td>
+                    <td class="font-mono text-secondary font-bold text-lg">
+                        Bs. {{ tasa.tasa_dolar|floatformat:4 }}
+                    </td>
+                    <td class="text-[10px] opacity-70 leading-tight">
+                        <div><span class="font-bold">Creado:</span> {{ tasa.audit_creacion }}</div>
+                        <div><span class="font-bold">Modif:</span> {{ tasa.audit_modifica }}</div>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'viaticos:tasa_update' tasa.id %}"
+                                class="btn btn-ghost btn-square btn-sm text-info hover:bg-info/10" title="Editar"><i
+                                    class="fas fa-edit"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-10 opacity-50">No se encontraron tasas para los criterios
+                        seleccionados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-6 border-t border-base-200 flex justify-center">
+        <div class="join">
+            {% if pagination.has_prev %}
+            <a href="?page=1&per_page={{ per_page }}&q_fecha={{ q_fecha|default:'' }}"
+                class="join-item btn btn-sm">«</a>
+            <a href="?page={{ pagination.prev }}&per_page={{ per_page }}&q_fecha={{ q_fecha|default:'' }}"
+                class="join-item btn btn-sm">Anterior</a>
+            {% endif %}
+            <button class="join-item btn btn-sm btn-active">
+                Página {{ pagination.current }} de {{ pagination.total }}
+            </button>
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next }}&per_page={{ per_page }}&q_fecha={{ q_fecha|default:'' }}"
+                class="join-item btn btn-sm">Siguiente</a>
+            <a href="?page={{ pagination.total }}&per_page={{ per_page }}&q_fecha={{ q_fecha|default:'' }}"
+                class="join-item btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

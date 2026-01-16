@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - VIAJERO{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+    <!-- Card 1 -->
+    <div class="card bg-base-100 shadow-xl border-t-4 border-primary">
+        <div class="card-body">
+            <h2 class="card-title text-primary">
+                <i class="fas fa-plus-circle"></i> Nueva Solicitud</h2>
+            <p>Inicia un nuevo proceso de viáticos para tu próximo viaje.</p>
+            <div class="card-actions justify-end">
+                <a href="{% url 'viaticos:solicitud_create' %}">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus-circle"></i> Empezar
+                </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card bg-base-100 shadow-xl border-t-4 border-secondary">
+        <div class="card-body">
+            <h2 class="card-title text-secondary"><i class="fas fa-clock"></i> Pendientes</h2>
+            <p>Tienes 3 solicitudes esperando aprobación.</p>
+            <div class="card-actions justify-end">
+                <button class="btn btn-secondary btn-sm">Ver Todo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card bg-base-100 shadow-xl border-t-4 border-accent">
+        <div class="card-body">
+            <h2 class="card-title text-accent"><i class="fas fa-wallet"></i> Rendiciones</h2>
+            <p>Carga tus recibos de los viajes finalizados.</p>
+            <div class="card-actions justify-end">
+                <button class="btn btn-accent btn-sm">Cargar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-10 overflow-x-auto bg-base-100 rounded-box shadow-lg p-4">
+    <h3 class="text-xl font-bold mb-4 text-primary">Últimas Solicitudes</h3>
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Destino</th>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Monto</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for solicitud in solicitudes %}
+            <tr class="hover">
+                <td class="font-mono font-bold text-primary">#{{ solicitud.nro_solicitud }}</td>
+                <td>
+                    <div class="font-semibold">{{ solicitud.localidad.nombre|default:"Sin localidad" }}</div>
+                    <div class="text-[10px] opacity-50">{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</div>
+                </td>
+                <td>
+                    <div class="font-semibold">
+                        {{solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</div>
+                </td>
+                <td> 
+                    <span class="badge badge-ghost"></span>
+                    <div class="badge badge-ghost gap-2">{{solicitud.estado_solicitud}} </div> </span>
+                    
+                </td>
+                <td class="font-mono font-bold text-success" align="right">${{ solicitud.total_dolares|floatformat:"2g" }}</td>
+                <td>
+                    <div class="flex gap-1">
+                        <button onclick="openDetalleModal({{ solicitud.nro_solicitud }})" 
+                           class="btn btn-ghost btn-xs" title="Ver detalles">
+                            <i class="fas fa-eye mr-1"></i>Detalles
+                        </button>
+                        {% if solicitud.aprobador_administrativo == user and solicitud.estado_solicitud == 'SOLICITADO' %}
+                        <button onclick="openAprobarModal({{ solicitud.nro_solicitud }})" 
+                           class="btn btn-info btn-xs" title="Cambiar estado">
+                            <i class="fas fa-check-circle mr-1"></i>Revisar
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-12 opacity-50 italic">
+                    No tienes solicitudes registradas.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para mostrar detalles de la solicitud -->
+<dialog id="detalle_modal" class="modal">
+    <div class="modal-box max-w-5xl w-full">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <div id="detalle_content">
+            <!-- El contenido se cargará dinámicamente aquí -->
+            <div class="flex justify-center items-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>.</button>
+    </form>
+</dialog>
+
+<!-- Modal para aprobar/rechazar solicitud -->
+<dialog id="aprobar_modal" class="modal">
+    <div class="modal-box max-w-md w-11/12 bg-white  rounded-[2.5rem]  shadow-2xl" style="background-color: white !important;" >
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-error ">✕</button>
+            <h3 class="font-bold text-lg mb-4 text-primary" > Revisión de  Solicitud</h3>
+        </form>
+        <br>
+       
+        <div id="aprobar_content">
+            <!-- El contenido se cargará dinámicamente aquí -->
+            <div class="flex justify-center items-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        .
+    </form>
+</dialog>
+
+<script>
+    function openDetalleModal(solicitudId) {
+        const modal = document.getElementById('detalle_modal');
+        const content = document.getElementById('detalle_content');
+        
+        // Mostrar modal
+        modal.showModal();
+        
+        // Cargar contenido
+        content.innerHTML = '<div class="flex justify-center items-center py-8"><span class="loading loading-spinner loading-lg"></span></div>';
+        
+        fetch(`{% url 'viaticos:solicitud_detalle' 0 %}`.replace('0', solicitudId))
+            .then(response => response.text())
+            .then(html => {
+                content.innerHTML = html;
+            })
+            .catch(error => {
+                content.innerHTML = '<div class="alert alert-error"><p>Error al cargar los detalles de la solicitud.</p></div>';
+            });
+    }
+    
+    function imprimirPDF() {
+        window.print();
+    }
+    
+    function openAprobarModal(solicitudId) {
+        const modal = document.getElementById('aprobar_modal');
+        const content = document.getElementById('aprobar_content');
+        
+        // Mostrar modal
+        modal.showModal();
+        
+        // Cargar contenido
+        content.innerHTML = '<div class="flex justify-center items-center py-8"><span class="loading loading-spinner loading-lg"></span></div>';
+        
+        fetch(`{% url 'viaticos:solicitud_aprobar' 0 %}`.replace('0', solicitudId))
+            .then(response => response.text())
+            .then(html => {
+                content.innerHTML = html;
+            })
+            .catch(error => {
+                content.innerHTML = '<div class="alert alert-error"><p>Error al cargar la información de la solicitud.</p></div>';
+            });
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function aprobarSolicitud(solicitudId) {
+        if (confirm('¿Está seguro de aprobar esta solicitud?')) {
+            const csrftoken = getCookie('csrftoken');
+            fetch(`{% url 'viaticos:solicitud_cambiar_estado' 0 %}`.replace('0', solicitudId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ accion: 'aprobar' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('aprobar_modal').close();
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo aprobar la solicitud'));
+                }
+            })
+            .catch(error => {
+                alert('Error al aprobar la solicitud');
+            });
+        }
+    }
+    
+    function rechazarSolicitud(solicitudId) {
+        if (confirm('¿Está seguro de rechazar esta solicitud?')) {
+            const csrftoken = getCookie('csrftoken');
+            fetch(`{% url 'viaticos:solicitud_cambiar_estado' 0 %}`.replace('0', solicitudId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ accion: 'rechazar' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('aprobar_modal').close();
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo rechazar la solicitud'));
+                }
+            })
+            .catch(error => {
+                alert('Error al rechazar la solicitud');
+            });
+        }
+    }
+</script>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #detalle_modal, #detalle_modal * {
+            visibility: visible;
+           
+        }
+        #detalle_modal {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            background: white;
+
+   
+        }
+        .modal-box {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            height: auto !important;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+ 
+    /* 1. CENTRADO FORZADO PARA PANTALLA */
+    dialog.modal {
+        /* Reset de posición por si acaso */
+        padding: 0;
+        border: none;
+        background-color: transparent;
+        
+        /* Centrado absoluto */
+        position: fixed;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        
+        /* Solo mostrar cuando está abierto */
+        display: none;
+    }
+
+    dialog[open].modal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro */
+    }
+
+    .modal-box {
+        margin: 0 !important; /* Quitamos márgenes que puedan desplazarlo */
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* 2. ESTILOS PARA IMPRESIÓN */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #detalle_modal[open], #detalle_modal[open] * {
+            visibility: visible;
+        }
+        #detalle_modal[open] {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            transform: none !important;
+            width: 100%;
+            display: block !important;
+            background: white;
+        }
+        .modal-box {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-shadow: none !important;
+        }
+        .modal-backdrop, .btn-circle, .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+
+{% endblock %}

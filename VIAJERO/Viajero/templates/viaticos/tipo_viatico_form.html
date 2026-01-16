@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - VIAJERO{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'viaticos:tipo_viatico_list' %}" class="btn btn-ghost btn-circle">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-extrabold text-primary">{{ title }}</h1>
+            <p class="text-base-content/60">Configura los conceptos de gasto y sus montos referenciales en USD.</p>
+        </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="card bg-base-100 shadow-xl border-t-4 border-primary">
+            <div class="card-body gap-6">
+                <!-- Descripción del Gasto -->
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-base-content text-lg">Descripción del Gasto*</span>
+                    </label>
+                    {{ form.tipo_gasto }}
+                    {% if form.tipo_gasto.errors %}
+                    <label class="label"><span class="label-text-alt text-error font-bold">{{ form.tipo_gasto.errors.0 }}</span></label>
+                    {% endif %}
+                    <label class="label"><span class="label-text-alt opacity-50 italic">Ej: Desayuno, Almuerzo, Cena,
+                            Hospedaje, Taxi...</span></label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Monto USD -->
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-base-content text-lg">Monto Base (USD)*</span>
+                        </label>
+                        <div class="relative">
+                            {{ form.montodolares }}
+                            <div
+                                class="absolute inset-y-0 right-4 flex items-center pointer-events-none opacity-50 font-bold">
+                                $</div>
+                        </div>
+                        {% if form.montodolares.errors %}
+                        <label class="label"><span class="label-text-alt text-error font-bold">{{ form.montodolares.errors.0 }}</span></label>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tipo de Tarifa -->
+                    <div
+                        class="form-control bg-base-200 p-4 rounded-xl border border-transparent hover:border-warning/50 transition-all">
+                        <label class="label cursor-pointer flex justify-between">
+                            <span class="label-text font-bold">¿Es Tarifa Premium?</span>
+                            {{ form.es_premium }}
+                        </label>
+                        <span class="text-[10px] opacity-60">Marca esta opción si el monto aplica para localidades o
+                            usuarios con categoría Premium.</span>
+                    </div>
+                </div>
+
+                <!-- Estado y Gestión -->
+                <div class="divider">Configuración de Aplicación</div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div
+                        class="form-control bg-base-200 p-4 rounded-xl border border-transparent hover:border-secondary/30 transition-all">
+                        <label class="label cursor-pointer flex justify-between">
+                            <div>
+                                <span class="label-text font-bold">Gestión Adicional</span>
+                                <span class="block text-[10px] opacity-60">Se gestiona aparte (Hospedaje o Traslado).
+                                    <br>
+                                    El monto quedara en cero pues no se controla en esta aplicacion.
+                                </span>
+                            </div>
+                            {{ form.gestionadicional }}
+                        </label>
+                    </div>
+
+                    <div
+                        class="form-control bg-base-200 p-4 rounded-xl border border-transparent hover:border-success/30 transition-all">
+                        <label class="label cursor-pointer flex justify-between">
+                            <span class="label-text font-bold">Gasto Activo</span>
+                            {{ form.activo }}
+                        </label>
+                    </div>
+                </div>
+
+                {% if tipo %}
+                <div class="divider text-base-content/30 italic text-[10px] uppercase tracking-widest mt-4">Trazabilidad
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[9px] uppercase font-bold opacity-50 mb-1">Registrado</div>
+                        <div class="text-xs font-semibold">{{ tipo.audit_creacion }}</div>
+                    </div>
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[9px] uppercase font-bold opacity-50 mb-1">Último Cambio</div>
+                        <div class="text-xs font-semibold">{{ tipo.audit_modifica }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+            <a href="{% url 'viaticos:tipo_viatico_list' %}" class="btn btn-ghost order-2 sm:order-1">Cancelar</a>
+            <button type="submit" class="btn btn-primary shadow-lg px-8 order-1 sm:order-2">
+                <i class="fas fa-save mr-2"></i>Guardar Concepto
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkGestion = document.getElementById('id_gestionadicional');
+        const inputMonto = document.getElementById('id_montodolares');
+
+        function toggleMonto() {
+            if (checkGestion.checked) {
+                inputMonto.value = '0.00';
+                inputMonto.readOnly = true;
+                inputMonto.classList.add('bg-base-200', 'cursor-not-allowed', 'opacity-70');
+            } else {
+                inputMonto.readOnly = false;
+                inputMonto.classList.remove('bg-base-200', 'cursor-not-allowed', 'opacity-70');
+            }
+        }
+
+        // Initialize state
+        toggleMonto();
+
+        // Listen for changes
+        checkGestion.addEventListener('change', toggleMonto);
+    });
+</script>
+{% endblock %}

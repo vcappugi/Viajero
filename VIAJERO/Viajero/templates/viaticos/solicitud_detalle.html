@@ -1,0 +1,142 @@
+<div class="print-container max-w-4xl mx-auto p-4 bg-white" id="documento-imprimible">
+    <div class="flex justify-end gap-2 mb-4 no-print">
+        <button onclick="imprimirPDF()" class="btn btn-primary btn-sm">
+            Imprimir PDF
+        </button>
+    </div>
+
+    <div class="flex items-center justify-between border-b-2 border-black pb-4 mb-6">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 bg-gray-100 flex items-center justify-center border border-gray-400">
+                <span style="font-size: 8px; text-align: center;">
+
+                    {% if solicitud.empresa.logo %}
+                    <img src="{{ solicitud.empresa.logo.url }}" alt="Logo de la empresa" class="w-16 h-16 object-contain">
+                    {% else %}
+                    <span style="font-size: 8px; text-align: center;">No hay logo</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div>
+                <h1 style="color: black !important;" class="text-2xl font-bold uppercase leading-tight">Solicitud de Viáticos</h1>
+                <p class="text-xs text-gray-500 uppercase">Sistema de Gestión de Viajes</p>
+            </div>
+        </div>
+        <div class="text-right">
+            <h2 style="color: black !important;" class="text-xl font-bold">Nro: #{{ solicitud.nro_solicitud }}</h2>
+            <p class="text-sm font-semibold">Fecha: {{ solicitud.fecha_solicitud|date:"d/m/Y" }}</p>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <table class="w-full border-collapse border border-gray-400 text-sm">
+            <thead>
+                <tr>
+                    <th colspan="4" class="bg-gray-100 border border-gray-400 p-2 text-left uppercase font-bold">I. Información General y del Viaje</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50 w-1/4">Solicitante:</td>
+                    <td class="border border-gray-400 p-2 w-1/4">{{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</td>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50 w-1/4">Estado:</td>
+                    <td class="border border-gray-400 p-2 w-1/4 uppercase">{{ solicitud.estado_solicitud }}</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Destino:</td>
+                    <td class="border border-gray-400 p-2">{{ solicitud.localidad.nombre|default:"No especificada" }}</td>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Cant. Personas:</td>
+                    <td class="border border-gray-400 p-2">{{ solicitud.cantidad_personas }}</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Fecha Desde:</td>
+                    <td class="border border-gray-400 p-2">{{ solicitud.desde|date:"d/m/Y" }}</td>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Fecha Hasta:</td>
+                    <td class="border border-gray-400 p-2">{{ solicitud.hasta|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Aprobador:</td>
+                    <td class="border border-gray-400 p-2">{{ solicitud.aprobador_administrativo.get_full_name|default:"No asignado" }}</td>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Zona:</td>
+                    <td class="border border-gray-400 p-2">{{ solicitud.localidad.zona|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Descripción:</td>
+                    <td colspan="3" class="border border-gray-400 p-2">{{ solicitud.descripcion|default:"Sin descripción adicional." }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mb-6">
+        <table class="w-full border-collapse border border-gray-400 text-sm">
+            <thead>
+                <tr>
+                    <th colspan="4" class="bg-gray-100 border border-gray-400 p-2 text-left uppercase font-bold">II. Conceptos de Gastos</th>
+                </tr>
+                <tr class="bg-gray-50 text-center">
+                    <th class="border border-gray-400 p-2">Descripción del Gasto</th>
+                    <th class="border border-gray-400 p-2 w-20">Cant.</th>
+                    <th class="border border-gray-400 p-2 w-32">Unitario (USD)</th>
+                    <th class="border border-gray-400 p-2 w-32">Total (USD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td class="border border-gray-400 p-2">
+                        {{ detalle.tipo_viatico.tipo_gasto }}
+                    </td>
+                    <td class="border border-gray-400 p-2 text-center">{{ detalle.cantidad }}</td>
+                    <td class="border border-gray-400 p-2 text-right" align="right">
+                        ${{ detalle.tipo_viatico.montodolares|default:"0"|floatformat:"2g" }}
+                    </td>
+                    <td class="border border-gray-400 p-2 text-right font-bold" align="right">${{ detalle.monto_dolares|floatformat:"2g" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="bg-gray-100 font-bold" align="right">
+                    <td colspan="3" class="border border-gray-400 p-2 text-right uppercase">Total General (USD):</td>
+                    <td class="border border-gray-400 p-2 text-right">${{ solicitud.total_dolares|floatformat:"2g" }}</td>
+                </tr>
+                <tr class="bg-gray-100 font-bold" align="right">
+                    <td colspan="3" class="border border-gray-400 p-2 text-right uppercase">TOTAL (Bs.):</td>
+                    <td class="border border-gray-400 p-2 text-right">Bs. {{ solicitud.total_bolivares|default:"0.00"|floatformat:"2g" }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+   
+
+    <div class="mt-8 pt-4 border-t border-base-300 text-center text-xs opacity-60 print-only">
+        <p>Documento generado el {% now "d/m/Y H:i" %} </p>
+    </div>
+</div>
+
+<style>
+    /* Estilos para limpiar la impresión */
+    @media print {
+        /* Oculta absolutamente todo excepto el contenedor del documento */
+        body * { visibility: hidden; }
+        #documento-imprimible, #documento-imprimible * { visibility: visible; }
+        #documento-imprimible { position: absolute; left: 0; top: 0; width: 100%; }
+        
+        /* Elimina la palabra CLOSE si viene de un pseudo-elemento de algún botón de modal */
+        .btn::before, .btn::after, .modal::before, .modal::after { content: none !important; display: none !important; }
+        
+        @page { size: portrait; margin: 1cm; }
+        .no-print { display: none !important; }
+    }
+
+    /* Reset para evitar interferencias de frameworks */
+    .print-container { background-color: white !important; color: black !important; }
+</style>
+
+<script>
+    function imprimirPDF() {
+        window.print();
+    }
+
+</script>

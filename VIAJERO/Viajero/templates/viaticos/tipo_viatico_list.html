@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Tipos de Viáticos - VIAJERO{% endblock %}
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <h1 class="text-3xl font-extrabold text-primary">Tipos de Viáticos</h1>
+    <a href="{% url 'viaticos:tipo_viatico_create' %}" class="btn btn-primary shadow-lg"><i
+            class="fas fa-plus mr-2"></i>Nuevo Tipo de Gasto</a>
+</div>
+
+<div class="card bg-base-100 shadow-xl overflow-hidden">
+    <div class="p-6 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-6">
+            <form method="get" class="flex items-center gap-3">
+                <span class="text-sm font-semibold opacity-70">Mostrar</span>
+                <select name="per_page" class="select select-bordered select-sm focus:select-primary"
+                    onchange="this.form.submit()">
+                    {% for option in per_page_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.value }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="q" value="{{ q|default:'' }}">
+                <span class="text-sm font-semibold opacity-70">registros</span>
+            </form>
+
+            <div class="divider divider-horizontal hidden md:flex"></div>
+
+            <form method="get" class="flex items-center gap-2">
+                <input type="hidden" name="per_page" value="{{ per_page }}">
+                <div class="join">
+                    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Buscar tipo de gasto..."
+                        class="input input-bordered input-sm join-item w-64 focus:input-primary">
+                    <button type="submit" class="btn btn-sm btn-primary join-item">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    {% if q %}
+                    <a href="{% url 'viaticos:tipo_viatico_list' %}?per_page={{ per_page }}"
+                        class="btn btn-sm btn-ghost join-item text-error" title="Limpiar filtro">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead class="bg-base-200 uppercase text-xs">
+                <tr>
+                    <th class="w-12">#</th>
+                    <th>Descripción del Gasto</th>
+                    <th>Tarifa</th>
+                    <th>Monto Base ($)</th>
+                    <th>Estado</th>
+                    <th>Auditoría</th>
+                    <th class="text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo in page_obj %}
+                <tr class="hover text-sm">
+                    <td class="font-mono text-xs opacity-50">{{ forloop.counter|add:page_obj.start_index|add:"-1" }}
+                    </td>
+                    <td class="font-bold text-base-content">{{ tipo.tipo_gasto }}</td>
+                    <td>
+                        <div class="flex flex-col gap-1">
+                            {% if tipo.es_premium %}
+                            <span class="badge badge-warning gap-1 font-bold h-auto py-0.5 text-[10px]"><i
+                                    class="fas fa-star text-[8px]"></i> Premium</span>
+                            {% else %}
+                            <span class="badge badge-ghost opacity-60 text-[10px]">Normal</span>
+                            {% endif %}
+
+                            {% if tipo.gestionadicional %}
+                            <span class="badge badge-secondary gap-1 font-bold h-auto py-0.5 text-[10px]"><i
+                                    class="fas fa-calendar-alt text-[8px]"></i> Gestión Adic.</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="font-mono font-bold text-primary">
+                        $ {{ tipo.montodolares|floatformat:2 }}
+                    </td>
+                    <td>
+                        {% if tipo.activo %}
+                        <span class="badge badge-success badge-sm">Activo</span>
+                        {% else %}
+                        <span class="badge badge-error badge-sm">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-[10px] opacity-70 leading-tight">
+                        <div><span class="font-bold">Creado:</span> {{ tipo.audit_creacion }}</div>
+                        <div><span class="font-bold">Modif:</span> {{ tipo.audit_modifica }}</div>
+                    </td>
+                    <td class="text-right">
+                        <div class="flex justify-end gap-1">
+                            <a href="{% url 'viaticos:tipo_viatico_update' tipo.id %}"
+                                class="btn btn-ghost btn-square btn-sm text-info hover:bg-info/10" title="Editar"><i
+                                    class="fas fa-edit"></i></a>
+                            <form action="{% url 'viaticos:tipo_viatico_toggle_status' tipo.id %}" method="post"
+                                style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="btn btn-ghost btn-square btn-sm {% if tipo.activo %}text-error hover:bg-error/10{% else %}text-success hover:bg-success/10{% endif %}"
+                                    title="{% if tipo.activo %}Inactivar{% else %}Activar{% endif %}">
+                                    <i class="fas {% if tipo.activo %}fa-power-off{% else %}fa-check{% endif %}"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-10 opacity-50">No se encontraron tipos de viáticos.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="p-6 border-t border-base-200 flex justify-center">
+        <div class="join">
+            {% if pagination.has_prev %}
+            <a href="?page=1&per_page={{ per_page }}&q={{ q|default:'' }}" class="join-item btn btn-sm">«</a>
+            <a href="?page={{ pagination.prev }}&per_page={{ per_page }}&q={{ q|default:'' }}"
+                class="join-item btn btn-sm">Anterior</a>
+            {% endif %}
+            <button class="join-item btn btn-sm btn-active">
+                Página {{ pagination.current }} de {{ pagination.total }}
+            </button>
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next }}&per_page={{ per_page }}&q={{ q|default:'' }}"
+                class="join-item btn btn-sm">Siguiente</a>
+            <a href="?page={{ pagination.total }}&per_page={{ per_page }}&q={{ q|default:'' }}"
+                class="join-item btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}Solicitudes de Viáticos - VIAJERO{% endblock %}
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <h1 class="text-3xl font-extrabold text-primary">Solicitudes de Viáticos</h1>
+    <a href="{% url 'viaticos:solicitud_create' %}" class="btn btn-primary shadow-lg">
+        <i class="fas fa-plus mr-2"></i>Nueva Solicitud
+    </a>
+</div>
+
+<div class="card bg-base-100 shadow-xl overflow-hidden">
+    <div class="p-6 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <form method="get" class="flex items-center gap-3">
+                <span class="text-sm font-semibold opacity-70">Mostrar</span>
+                <select name="per_page" class="select select-bordered select-sm focus:select-primary"
+                    onchange="this.form.submit()">
+                    {% for option in per_page_options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.value }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <span class="text-sm font-semibold opacity-70">registros</span>
+            </form>
+        </div>
+
+        <form method="get" class="relative w-full md:w-auto">
+            <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Buscar por usuario..."
+                class="input input-bordered w-full md:w-64 pr-10 focus:input-primary">
+            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead class="bg-base-200 uppercase text-xs">
+                <tr>
+                    <th class="w-16">Nro</th>
+                    <th>Solicitante</th>
+                    <th>Aprobador Adm.</th>
+                    <th>Estado</th>
+                    <th class="text-right">Total ($)</th>
+                    <th class="text-right">Total (Bs.)</th>
+                   
+                    <th class="text-center" colspan="2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitud in page_obj %}
+                <tr class="hover">
+                    <td class="font-mono font-bold text-primary">#{{ solicitud.nro_solicitud }}</td>
+                    <td>
+                        <div class="font-semibold">
+                            {{solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</div>
+                        <div class="text-[10px] opacity-50">{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</div>
+                    </td>
+                    <td class="text-sm">
+                        {{solicitud.aprobador_administrativo.get_full_name|default:solicitud.aprobador_administrativo.username|default:"No asignado"}}
+                    </td>
+                    <td>
+                        {% if solicitud.estado_solicitud == 'NUEVO' %}
+                        <div class="badge badge-ghost">Nuevo</div>
+                        {% elif solicitud.estado_solicitud == 'SOLICITADO' %}
+                        <div class="badge badge-info text-black">Solicitado</div>
+                        {% elif solicitud.estado_solicitud == 'APROBADO' %}
+                        <div class="badge badge-success text-white">Aprobado</div>
+                        {% elif solicitud.estado_solicitud == 'EN_GESTION' %}
+                        <div class="badge badge-warning text-white">En Gestión</div>
+                            {% elif solicitud.estado_solicitud == 'COMPLETADO' %}
+                            <div class="badge badge-primary text-white">Completado</div>
+                        {% elif solicitud.estado_solicitud == 'RECHAZADO' %}
+                        <div class="badge badge-error text-white">Rechazado</div>
+                        {% else %}
+                        <div class="badge badge-outline">{{ solicitud.estado_solicitud }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-right font-mono font-bold text-success" align="right">${{ solicitud.total_dolares|floatformat:"2g" }}</td>
+                    <td class="text-right font-mono text-sm opacity-80" align="right">{{ solicitud.total_bolivares|default:"0.00"|floatformat:"2g" }}
+                        Bs.</td>
+                    
+                    <td class="text-center">
+                        <div class="flex justify-center gap-2">
+                            <a href="{% url 'viaticos:solicitud_update' solicitud.nro_solicitud %}"
+                                class="btn btn-ghost btn-square btn-sm text-info hover:bg-info/10" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <button onclick="openDetalleModal({{ solicitud.nro_solicitud }})" 
+                           class="btn btn-ghost btn-xs" title="Ver detalles">
+                            <i class="fas fa-eye mr-1"></i>Formato
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-12 opacity-50 italic">No se encontraron solicitudes
+                        registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="p-6 border-t border-base-200 flex justify-center">
+        <div class="join">
+            {% if pagination.has_prev %}
+            <a href="?page=1&per_page={{ per_page }}&q={{ q|default:'' }}" class="join-item btn btn-sm">«</a>
+            <a href="?page={{ pagination.prev }}&per_page={{ per_page }}&q={{ q|default:'' }}"
+                class="join-item btn btn-sm">Anterior</a>
+            {% endif %}
+            <button class="join-item btn btn-sm btn-active">Página {{ pagination.current }} de {{ pagination.total}}</button>
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next }}&per_page={{ per_page }}&q={{ q|default:'' }}"
+                class="join-item btn btn-sm">Siguiente</a>
+            <a href="?page={{ pagination.total }}&per_page={{ per_page }}&q={{ q|default:'' }}"
+                class="join-item btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para mostrar detalles de la solicitud -->
+<dialog id="detalle_modal" class="modal">
+    <div class="modal-box max-w-5xl w-full">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <div id="detalle_content">
+            <!-- El contenido se cargará dinámicamente aquí -->
+            <div class="flex justify-center items-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>.</button>
+    </form>
+</dialog>
+
+<script>
+    function openDetalleModal(solicitudId) {
+        const modal = document.getElementById('detalle_modal');
+        const content = document.getElementById('detalle_content');
+        
+        // Mostrar modal
+        modal.showModal();
+        
+        // Cargar contenido
+        content.innerHTML = '<div class="flex justify-center items-center py-8"><span class="loading loading-spinner loading-lg"></span></div>';
+        
+        fetch(`{% url 'viaticos:solicitud_detalle' 0 %}`.replace('0', solicitudId))
+            .then(response => response.text())
+            .then(html => {
+                content.innerHTML = html;
+            })
+            .catch(error => {
+                content.innerHTML = '<div class="alert alert-error"><p>Error al cargar los detalles de la solicitud.</p></div>';
+            });
+    }
+    
+    function imprimirPDF() {
+        window.print();
+    }
+</script>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #detalle_modal, #detalle_modal * {
+            visibility: visible;
+        }
+        #detalle_modal {
+            position: fixed;
+            left: 100;
+            top: 50;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            background: white;
+        }
+        .modal-box {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            height: auto !important;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+
+
+
+{% endblock %}

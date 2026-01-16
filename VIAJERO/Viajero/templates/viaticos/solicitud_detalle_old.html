@@ -1,0 +1,224 @@
+<div class="print-container">
+    <!-- Botones de acción (no se imprimen) -->
+    <div class="flex justify-end gap-2 mb-4 no-print">
+        <button onclick="imprimirPDF()" class="btn btn-primary btn-sm">
+            <i class="fas fa-file-pdf mr-2"></i>Imprimir PDF
+        </button>
+       
+    </div>
+
+    <!-- Encabezado del documento -->
+    <div class="text-center mb-6 border-b-2 border-primary pb-4">
+        <h1 class="text-3xl font-black text-primary mb-2">SOLICITUD DE VIÁTICOS</h1>
+        <p class="text-lg font-semibold">Número: #{{ solicitud.nro_solicitud }}</p>
+    </div>
+
+    <!-- Información General -->
+    <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="card-title text-primary mb-4"><i class="fas fa-info-circle mr-2"></i>Información General</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Solicitante:</label>
+                    <p class="text-base">{{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Fecha de Solicitud:</label>
+                    <p class="text-base">{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Estado:</label>
+                    <p class="text-base">
+                        {% if solicitud.estado_solicitud == 'NUEVO' %}
+                        <span class="badge badge-ghost">Nuevo</span>
+                        {% elif solicitud.estado_solicitud == 'SOLICITADO' %}
+                        <span class="badge badge-info text-white">Solicitado</span>
+                        {% elif solicitud.estado_solicitud == 'APROBADO' %}
+                        <span class="badge badge-success text-white">Aprobado</span>
+                        {% elif solicitud.estado_solicitud == 'EN_GESTION' %}
+                        <span class="badge badge-warning text-white">En Gestión</span>
+                        {% elif solicitud.estado_solicitud == 'COMPLETADO' %}
+                        <span class="badge badge-primary text-white">Completado</span>
+                        {% elif solicitud.estado_solicitud == 'RELACIONADO' %}
+                        <span class="badge badge-secondary text-white">Relacionado</span>
+                        {% else %}
+                        <span class="badge badge-outline">{{ solicitud.estado_solicitud }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Aprobador Administrativo:</label>
+                    <p class="text-base">{{ solicitud.aprobador_administrativo.get_full_name|default:solicitud.aprobador_administrativo.username|default:"No asignado" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del Viaje -->
+    <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="card-title text-primary mb-4"><i class="fas fa-map-marker-alt mr-2"></i>Información del Viaje</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Localidad/Destino:</label>
+                    <p class="text-base">{{ solicitud.localidad.nombre|default:"No especificada" }}</p>
+                    {% if solicitud.localidad %}
+                    <p class="text-xs opacity-60">Zona: {{ solicitud.localidad.zona }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Cantidad de Personas:</label>
+                    <p class="text-base">{{ solicitud.cantidad_personas }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Fecha Desde:</label>
+                    <p class="text-base">{{ solicitud.desde|date:"d/m/Y" }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold opacity-70">Fecha Hasta:</label>
+                    <p class="text-base">{{ solicitud.hasta|date:"d/m/Y" }}</p>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-sm font-semibold opacity-70">Descripción:</label>
+                    <p class="text-base">{{ solicitud.descripcion|default:"Sin descripción" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle de Conceptos -->
+    <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="card-title text-primary mb-4"><i class="fas fa-list-ul mr-2"></i>Conceptos de Gastos</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead class="bg-base-200">
+                        <tr>
+                            <th>Concepto / Tipo de Gasto</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-right">Monto Unitario (USD)</th>
+                            <th class="text-right">Monto Total (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>
+                                <div class="font-semibold">{{ detalle.tipo_viatico.tipo_gasto }}</div>
+                                {% if detalle.tipo_viatico.es_premium %}
+                                <span class="badge badge-sm badge-warning">Premium</span>
+                                {% endif %}
+                                {% if detalle.tipo_viatico.gestionadicional %}
+                                <span class="badge badge-sm badge-info">Gestión Adicional</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">{{ detalle.cantidad }}</td>
+                            <td class="text-right font-mono">
+                                {% if detalle.tipo_viatico.gestionadicional %}
+                                $0.00
+                                {% else %}
+                                ${{ detalle.tipo_viatico.montodolares }}
+                                {% endif %}
+                            </td>
+                            <td class="text-right font-mono font-bold">${{ detalle.monto_dolares }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 opacity-50 italic">No hay conceptos registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-base-200 font-bold">
+                        <tr>
+                            <td colspan="3" class="text-right">TOTAL (USD):</td>
+                            <td class="text-right font-mono text-lg text-success">${{ solicitud.total_dolares }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-right">TOTAL (Bs.):</td>
+                            <td class="text-right font-mono text-lg text-primary">{{ solicitud.total_bolivares|default:"0.00" }} Bs.</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Pie de página para impresión -->
+    <div class="mt-8 pt-4 border-t border-base-300 text-center text-xs opacity-60 print-only">
+        <p>Documento generado el {{ "now"|date:"d/m/Y H:i" }} - Sistema VIAJERO</p>
+    </div>
+</div>
+
+<script>
+    // Asegurar que la función esté disponible globalmente
+    if (typeof window.imprimirPDF === 'undefined') {
+        window.imprimirPDF = function() {
+            window.print();
+        };
+    }
+</script>
+
+<style>
+    @media print {
+        /* 1. Forzar que todo quepa en una página */
+        @page {
+            size: portrait;
+            margin: 1cm;
+        }
+
+        body {
+            background: white !important;
+            color: black !important;
+        }
+
+        /* 2. Evitar saltos de página innecesarios */
+        .print-container {
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .card {
+            border: 1px solid #e5e7eb !important; /* Borde gris suave para sustituir la sombra */
+            break-inside: avoid;
+            margin-bottom: 10px !important;
+            box-shadow: none !important;
+        }
+
+        /* 3. Asegurar visibilidad del detalle (Tablas) */
+        .table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+
+        .table th, .table td {
+            background-color: transparent !important;
+            color: black !important;
+            border: 1px solid #eee !important;
+            padding: 4px 8px !important; /* Reducir padding para ahorrar espacio */
+        }
+
+        .bg-base-200 {
+            background-color: #f3f4f6 !important; /* Gris claro para encabezados */
+            -webkit-print-color-adjust: exact; /* Forzar color en Chrome/Safari */
+            print-color-adjust: exact;
+        }
+
+        /* 4. Ocultar elementos */
+        .no-print {
+            display: none !important;
+        }
+
+        /* Ajustar tamaños de texto para que todo quepa */
+        h1 { font-size: 15pt !important; }
+        .card-title { font-size: 10pt !important; }
+        p, td, label { font-size: 8pt !important; }
+    }
+
+    @media screen {
+        .print-only {
+            display: none;
+        }
+    }
+</style>

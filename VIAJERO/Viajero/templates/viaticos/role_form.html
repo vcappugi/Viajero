@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - VIAJERO{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'viaticos:role_list' %}" class="btn btn-ghost btn-circle">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-extrabold text-primary">{{ title }}</h1>
+            <p class="text-base-content/60">Configura los permisos y responsabilidades del rol.</p>
+        </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body gap-6">
+                <!-- Información Principal -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-base-content">Nombre del Rol*</span>
+                        </label>
+                        {{ form.nombre_rol }}
+                        {% if form.nombre_rol.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ form.nombre_rol.errors.0 }}</span></label>
+                        {% endif %}
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-base-content">Tipo de Acceso*</span>
+                        </label>
+                        {{ form.tipo_rol }}
+                        {% if form.tipo_rol.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ form.tipo_rol.errors.0 }}</span></label>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-base-content">Empresa Asignada</span>
+                    </label>
+                    {{ form.empresa }}
+                    <label class="label">
+                        <span class="label-text-alt opacity-60">Deja en blanco si es un rol global del sistema.</span>
+                    </label>
+                    {% if form.empresa.errors %}
+                    <label class="label"><span class="label-text-alt text-error">{{ form.empresa.errors.0 }}</span></label>
+                    {% endif %}
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-base-content">Descripción de Responsabilidades</span>
+                    </label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                    <label class="label"><span class="label-text-alt text-error">{{ form.descripcion.errors.0 }}</span></label>
+                    {% endif %}
+                </div>
+
+                {% if role %}
+                <div class="divider text-base-content/30 italic text-xs uppercase tracking-widest">Información de
+                    Auditoría</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[10px] uppercase font-bold opacity-50 mb-1">Registro Inicial</div>
+                        <div class="text-sm font-semibold">{{ role.audit_creacion }}</div>
+                    </div>
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[10px] uppercase font-bold opacity-50 mb-1">Última Modificación</div>
+                        <div class="text-sm font-semibold">{{ role.audit_modifica }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+            <a href="{% url 'viaticos:role_list' %}" class="btn btn-ghost order-2 sm:order-1">Cancelar</a>
+            <button type="submit" class="btn btn-primary shadow-lg px-8 order-1 sm:order-2">
+                <i class="fas fa-save mr-2"></i>Guardar Rol
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

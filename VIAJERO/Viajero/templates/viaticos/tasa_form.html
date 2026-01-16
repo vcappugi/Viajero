@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - VIAJERO{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'viaticos:tasa_list' %}" class="btn btn-ghost btn-circle">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-extrabold text-primary">{{ title }}</h1>
+            <p class="text-base-content/60">Actualiza el valor oficial para el cálculo de solicitudes.</p>
+        </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body gap-6">
+                <!-- Información Principal -->
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-base-content text-lg">Fecha de Vigencia*</span>
+                    </label>
+                    {{ form.fecha_valor }}
+                    {% if form.fecha_valor.errors %}
+                    <label class="label"><span class="label-text-alt text-error font-bold">{{ form.fecha_valor.errors.0 }}</span></label>
+                    {% endif %}
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-base-content text-lg">Tasa del Dólar (Bs.)*</span>
+                    </label>
+                    <div class="relative">
+                        {{ form.tasa_dolar }}
+                        <div
+                            class="absolute inset-y-0 right-4 flex items-center pointer-events-none opacity-50 font-bold">
+                            VES</div>
+                    </div>
+                    {% if form.tasa_dolar.errors %}
+                    <label class="label"><span class="label-text-alt text-error font-bold">{{ form.tasa_dolar.errors.0 }}</span></label>
+                    {% endif %}
+                </div>
+
+                {% if tasa %}
+                <div class="divider text-base-content/30 italic text-[10px] uppercase tracking-widest">Trazabilidad
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[9px] uppercase font-bold opacity-50 mb-1">Registrado</div>
+                        <div class="text-xs font-semibold">{{ tasa.audit_creacion }}</div>
+                    </div>
+                    <div class="bg-base-200/50 p-4 rounded-xl">
+                        <div class="text-[9px] uppercase font-bold opacity-50 mb-1">Último Cambio</div>
+                        <div class="text-xs font-semibold">{{ tasa.audit_modifica }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+            <a href="{% url 'viaticos:tasa_list' %}" class="btn btn-ghost order-2 sm:order-1">Cancelar</a>
+            <button type="submit" class="btn btn-primary shadow-lg px-8 order-1 sm:order-2">
+                <i class="fas fa-save mr-2"></i>Guardar Tasa
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

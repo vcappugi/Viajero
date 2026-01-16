@@ -1,0 +1,41 @@
+<div class="print-container max-w-4xl mx-auto p-4 bg-white">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="text-sm font-semibold opacity-70"> Número de Solicitud:</label>
+            <p class="text-base font-bold text-primary">#{{ solicitud.nro_solicitud }}</p>
+        </div>
+        <div>
+            <label class="text-sm font-semibold opacity-70">Solicitante:</label>
+            <p class="text-base">{{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</p>
+        </div>
+        <div class="md:col-span-2">
+            <label class="text-sm font-semibold opacity-70">Localidad/Destino:</label>
+            <p class="text-base">{{ solicitud.localidad.nombre|default:"No especificada" }}</p>
+        </div>
+        <div class="md:col-span-2">
+            <label class="text-sm font-semibold opacity-70">Descripción:</label>
+            <p class="text-base">{{ solicitud.descripcion|default:"Sin descripción" }}</p>
+        </div>
+        <div>
+            <label class="text-sm font-semibold opacity-70">Total en Dólares:</label>
+            <p class="text-base font-bold text-success">${{ solicitud.total_dolares|floatformat:2 }}</p>
+        </div>
+        <div>
+            <label class="text-sm font-semibold opacity-70">Total en Bolívares:</label>
+            <p class="text-base font-bold text-primary">{{ solicitud.total_bolivares|floatformat:2 }} Bs.</p>
+        </div>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <div class="flex justify-end gap-3">
+        <button onclick="rechazarSolicitud({{ solicitud.nro_solicitud }})" 
+                class="btn btn-error">
+            <i class="fas fa-times-circle mr-2"></i>Rechazar
+        </button>
+        <button onclick="aprobarSolicitud({{ solicitud.nro_solicitud }})" 
+                class="btn btn-success">
+            <i class="fas fa-check-circle mr-2"></i>Aprobar
+        </button>
+    </div>
+</div>

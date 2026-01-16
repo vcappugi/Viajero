@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - VIAJERO{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'viaticos:empresa_list' %}" class="btn btn-ghost btn-circle shadow-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-3xl font-black text-primary">{{ title }}</h1>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-2xl border border-base-200 overflow-hidden">
+        <div class="p-8 bg-primary/5 border-b border-primary/10">
+            <p class="text-gray-600 font-medium">Completa los datos de la empresa. Los campos marcados con * son
+                obligatorios.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="p-8 space-y-8">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Nombre -->
+                <div class="form-control w-full col-span-1 md:col-span-2">
+                    <label class="label">
+                        <span class="label-text font-bold text-gray-700">{{ form.nombre.label }}*</span>
+                    </label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                    <p class="text-error text-xs mt-1">{{ form.nombre.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Logo -->
+                <div class="form-control w-full col-span-1 md:col-span-2">
+                    <label class="label" for="id_logo">
+                        <span class="label-text font-bold text-gray-700">
+                            <i class="fas fa-image mr-2"></i>Logo de la Empresa
+                        </span>
+                    </label>
+                    {% if empresa and empresa.logo %}
+                    <div class="mb-4 p-4 bg-base-200 rounded-lg">
+                        <p class="text-sm font-semibold text-gray-700 mb-2">Logo actual:</p>
+                        <div class="flex items-center gap-4">
+                            <img src="{{ empresa.logo.url }}" alt="Logo de {{ empresa.nombre }}" 
+                                 class="max-w-xs h-32 object-contain border-2 border-gray-300 rounded-lg p-2 bg-white shadow-sm">
+                            <div class="text-xs text-gray-500">
+                                <p class="mb-1">Para cambiar el logo, selecciona una nueva imagen abajo.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <input type="file" 
+                           name="logo" 
+                           id="id_logo"
+                           accept="image/*"
+                           class="file-input file-input-bordered w-full focus:file-input-primary">
+                    {% if form.logo.errors %}
+                    <p class="text-error text-xs mt-1">{{ form.logo.errors.0 }}</p>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>Formatos aceptados: JPG, PNG, GIF. Tamaño recomendado: máximo 2MB
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-gray-700">{{ form.telefono.label }}</span>
+                    </label>
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                            <i class="fas fa-phone"></i>
+                        </span>
+                        <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}"
+                            class="input input-bordered w-full pl-12 focus:input-primary" placeholder="+58 000 0000000">
+                    </div>
+                    {% if form.telefono.errors %}
+                    <p class="text-error text-xs mt-1">{{ form.telefono.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Activo -->
+                <div class="form-control w-full flex flex-row items-center gap-4 mt-8 bg-base-200/50 p-4 rounded-xl">
+                    {{ form.activo }}
+                    <div>
+                        <span class="label-text font-bold text-gray-700 block">{{ form.activo.label }}</span>
+                        <span class="text-xs text-gray-500">Determina si la empresa puede operar en el sistema.</span>
+                    </div>
+                </div>
+
+                <!-- Dirección -->
+                <div class="form-control w-full col-span-1 md:col-span-2">
+                    <label class="label">
+                        <span class="label-text font-bold text-gray-700">{{ form.direccion.label }}</span>
+                    </label>
+                    {{ form.direccion }}
+                    {% if form.direccion.errors %}
+                    <p class="text-error text-xs mt-1">{{ form.direccion.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Descripción -->
+                <div class="form-control w-full col-span-1 md:col-span-2">
+                    <label class="label">
+                        <span class="label-text font-bold text-gray-700">{{ form.descripcion.label }}</span>
+                    </label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                    <p class="text-error text-xs mt-1">{{ form.descripcion.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="flex justify-end gap-4 mt-8">
+                <a href="{% url 'viaticos:empresa_list' %}" class="btn btn-ghost">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-10 shadow-lg shadow-primary/20">
+                    <i class="fas fa-save mr-2"></i>Guardar Empresa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

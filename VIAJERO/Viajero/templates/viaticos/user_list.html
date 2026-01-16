@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios - VIAJERO{% endblock %}
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <h1 class="text-3xl font-extrabold text-primary">Gestión de Usuarios</h1>
+    <a href="{% url 'viaticos:user_create' %}" class="btn btn-primary shadow-lg"><i
+            class="fas fa-user-plus mr-2"></i>Nuevo Usuario</a>
+</div>
+<div class="card bg-base-100 shadow-xl overflow-hidden">
+    <div class="p-6 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
+        <form method="get" class="flex items-center gap-3">
+            <span class="text-sm font-semibold opacity-70">Mostrar</span>
+            <select name="per_page" class="select select-bordered select-sm focus:select-primary"
+                onchange="this.form.submit()">
+                {% for option in per_page_options %}
+                <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.value }}
+                </option>
+                {% endfor %}
+            </select>
+            <span class="text-sm font-semibold opacity-70">registros por página</span>
+        </form>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead class="bg-base-200 uppercase text-xs">
+                <tr>
+                    <th class="w-12">#</th>
+                    <th>Usuario</th>
+                    <th>Cédula</th>
+                    <th>Nombre Completo</th>
+                    <th>Empresa / Rol</th>
+                    <th>Auditoría</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in page_obj %}
+                <tr class="hover">
+                    <td class="font-mono text-xs opacity-50">{{ forloop.counter|add:page_obj.start_index|add:"-1" }}
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            {% if usuario.perfil.foto %}
+                            <div class="avatar">
+                                <div class="w-10 h-10 rounded-full">
+                                    <img src="{{ usuario.perfil.foto.url }}" alt="Foto de {{ usuario.username }}" 
+                                         class="w-10 h-10 rounded-full object-cover border-2 border-base-300">
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="avatar placeholder">
+                                <div class="bg-neutral text-neutral-content rounded-full w-10"><span class="text-xs">{{ usuario.username|truncatechars:2 }}</span></div>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="font-bold">{{ usuario.username }}</div>
+                                <div class="text-xs opacity-50 text-lowercase">{{ usuario.email|default:"Sin email" }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="font-mono text-sm">{{ usuario.perfil.cedula_identidad|default:"-" }}</td>
+                    <td>{{ usuario.perfil.nombre_completo|default:usuario.get_full_name|default:"-" }}</td>
+                    <td>
+                        <div class="text-sm font-semibold">{{ usuario.perfil.empresa.nombre|default:"N/A" }}</div>
+                        <div class="badge badge-ghost badge-sm">{{ usuario.perfil.rol.nombre_rol|default:"Sin Rol" }}
+                        </div>
+                    </td>
+                    <td class="text-[10px] opacity-70 leading-tight">
+                        <div><span class="font-bold">Creado:</span> {{ usuario.perfil.audit_creacion }}</div>
+                        <div><span class="font-bold">Modif:</span> {{ usuario.perfil.audit_modifica }}</div>
+                    </td>
+                    <td>
+                        {% if usuario.is_active %}<div class="badge badge-success gap-2">Activo</div>{% else %}<div
+                            class="badge badge-error gap-2 text-white">Inactivo</div>{% endif %}
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'viaticos:user_update' usuario.id %}"
+                                class="btn btn-ghost btn-square btn-sm text-info hover:bg-info/10" title="Editar"><i
+                                    class="fas fa-edit"></i></a>
+                            <a href="{% url 'viaticos:user_toggle_status' usuario.id %}"
+                                class="btn btn-ghost btn-square btn-sm {% if usuario.is_active %}text-error hover:bg-error/10{% else %}text-success hover:bg-success/10{% endif %}"
+                                title="{% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}"><i
+                                    class="fas {% if usuario.is_active %}fa-user-slash{% else %}fa-user-check{% endif %}"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-10 opacity-50">No se encontraron usuarios registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-6 border-t border-base-200 flex justify-center">
+        <div class="join">
+            {% if pagination.has_prev %}
+            <a href="?page=1&per_page={{ per_page }}" class="join-item btn btn-sm">«</a>
+            <a href="?page={{ pagination.prev }}&per_page={{ per_page }}" class="join-item btn btn-sm">Anterior</a>
+            {% endif %}
+            <button class="join-item btn btn-sm btn-active">
+                Página {{ pagination.current }} de {{ pagination.total }}
+            </button>
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next }}&per_page={{ per_page }}" class="join-item btn btn-sm">Siguiente</a>
+            <a href="?page={{ pagination.total }}&per_page={{ per_page }}" class="join-item btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
